@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Mock API endpoints (in a real app, these would be real API endpoints)
@@ -11,6 +10,8 @@ export type ProcessingStage =
   | "background" 
   | "animating" 
   | "voiceover" 
+  | "lipSync"
+  | "videoComposition"
   | "completed";
 
 export interface ProcessingResult {
@@ -21,10 +22,14 @@ export interface ProcessingResult {
   backgroundUrl?: string;
   animatedUrl?: string;
   audioUrl?: string;
+  lipSyncUrl?: string;
+  finalVideoUrl?: string;
+  dialogueText?: string;
   stage: ProcessingStage;
   progress: number;
   backgroundType?: string;
   animationType?: string;
+  voiceType?: string;
 }
 
 export type BackgroundType = 
@@ -37,6 +42,13 @@ export type AnimationType =
   | "pan-zoom" 
   | "motion-simulation" 
   | "custom-transitions" 
+  | "none";
+
+export type VoiceType =
+  | "male"
+  | "female"
+  | "child"
+  | "robot"
   | "none";
 
 // Mock function to simulate image preprocessing
@@ -146,6 +158,94 @@ export const animateImage = async (processingId: string, animationType: Animatio
   } catch (error) {
     console.error("Error animating image:", error);
     toast.error("Failed to animate image");
+    throw error;
+  }
+};
+
+// New function to generate voiceover
+export const generateVoiceover = async (processingId: string, voiceType: VoiceType, dialogueText: string): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to 
+    // a service like ElevenLabs to generate the voiceover
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    return {
+      ...result,
+      audioUrl: "/placeholder.svg", // In real app, this would be audio file URL
+      dialogueText,
+      voiceType,
+      stage: "voiceover",
+      progress: 80
+    };
+  } catch (error) {
+    console.error("Error generating voiceover:", error);
+    toast.error("Failed to generate voiceover");
+    throw error;
+  }
+};
+
+// New function to generate lip sync
+export const generateLipSync = async (processingId: string): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to 
+    // a service like D-ID to generate the lip sync
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    // Ensure we have voice before applying lip sync
+    if (!result.audioUrl) {
+      throw new Error("Voice audio is required for lip sync");
+    }
+    
+    return {
+      ...result,
+      lipSyncUrl: "/placeholder.svg", // In real app, this would be animated face with lip sync
+      stage: "lipSync",
+      progress: 85
+    };
+  } catch (error) {
+    console.error("Error generating lip sync:", error);
+    toast.error("Failed to generate lip sync");
+    throw error;
+  }
+};
+
+// New function to compose the final video
+export const composeVideo = async (processingId: string): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to 
+    // compose the final video using ffmpeg or similar
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 3500));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    return {
+      ...result,
+      finalVideoUrl: "/placeholder.svg", // In real app, this would be final video URL
+      stage: "videoComposition",
+      progress: 95
+    };
+  } catch (error) {
+    console.error("Error composing video:", error);
+    toast.error("Failed to compose video");
     throw error;
   }
 };

@@ -1,24 +1,39 @@
 
 import React, { useState } from "react";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Download, Mic, Film, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProcessingResult, BackgroundType, AnimationType } from "@/services/processingService";
+import { 
+  ProcessingResult, 
+  BackgroundType, 
+  AnimationType,
+  VoiceType 
+} from "@/services/processingService";
 import BackgroundOptions from "./BackgroundOptions";
 import AnimationOptions from "./AnimationOptions";
+import VoiceoverPanel from "./VoiceoverPanel";
+import VideoPreview from "./VideoPreview";
 
 interface ColorizedPreviewProps {
   result: ProcessingResult;
   onGenerateBackground?: (type: BackgroundType) => void;
   onAnimateImage?: (type: AnimationType) => void;
+  onGenerateVoiceover?: (type: VoiceType, dialogueText: string) => void;
+  onGenerateLipSync?: () => void;
+  onComposeVideo?: () => void;
+  onDownloadVideo?: () => void;
 }
 
 const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({ 
   result,
   onGenerateBackground,
-  onAnimateImage 
+  onAnimateImage,
+  onGenerateVoiceover,
+  onGenerateLipSync,
+  onComposeVideo,
+  onDownloadVideo
 }) => {
   const [selectedBackgroundType, setSelectedBackgroundType] = useState<BackgroundType>(
     result.backgroundType as BackgroundType || "anime-style"
@@ -30,8 +45,16 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
 
   const isProcessingBackground = result.stage === "background" && !result.backgroundUrl;
   const isProcessingAnimation = result.stage === "animating" && !result.animatedUrl;
-  const canGenerateBackground = result.colorizedUrl && result.stage !== "background" && result.stage !== "animating" && result.stage !== "completed";
-  const canAnimateImage = result.backgroundUrl && result.stage !== "animating" && result.stage !== "completed";
+  const isProcessingVoiceover = result.stage === "voiceover" && !result.audioUrl;
+  const isProcessingLipSync = result.stage === "lipSync" && !result.lipSyncUrl;
+  const isProcessingVideoComposition = result.stage === "videoComposition" && !result.finalVideoUrl;
+  
+  const canGenerateBackground = result.colorizedUrl && result.stage !== "background" && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canAnimateImage = result.backgroundUrl && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canGenerateVoiceover = result.animatedUrl && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canGenerateLipSync = result.audioUrl && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canComposeVideo = result.animatedUrl && (result.audioUrl || result.lipSyncUrl) && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canDownloadVideo = result.finalVideoUrl && result.stage === "completed";
 
   const handleBackgroundGeneration = () => {
     if (onGenerateBackground) {
@@ -45,13 +68,39 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
     }
   };
 
+  const handleVoiceoverGeneration = (voiceType: VoiceType, dialogueText: string) => {
+    if (onGenerateVoiceover) {
+      onGenerateVoiceover(voiceType, dialogueText);
+    }
+  };
+
+  const handleLipSyncGeneration = () => {
+    if (onGenerateLipSync) {
+      onGenerateLipSync();
+    }
+  };
+
+  const handleVideoComposition = () => {
+    if (onComposeVideo) {
+      onComposeVideo();
+    }
+  };
+
+  const handleDownloadVideo = () => {
+    if (onDownloadVideo) {
+      onDownloadVideo();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="preview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="preview">Preview</TabsTrigger>
           <TabsTrigger value="background">Background</TabsTrigger>
           <TabsTrigger value="animation">Animation</TabsTrigger>
+          <TabsTrigger value="voiceover">Voiceover</TabsTrigger>
+          <TabsTrigger value="video">Video</TabsTrigger>
         </TabsList>
         
         <TabsContent value="preview" className="space-y-4">
@@ -140,6 +189,56 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
                   </Card>
                 </CarouselItem>
               )}
+              
+              {result.lipSyncUrl && (
+                <CarouselItem>
+                  <Card>
+                    <CardContent className="p-2">
+                      <div className="flex flex-col items-center p-2">
+                        <div className="relative w-full aspect-square flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Button variant="outline" size="icon" className="rounded-full bg-background/80">
+                              <Play className="h-4 w-4" />
+                              <span className="sr-only">Play Lip Sync</span>
+                            </Button>
+                          </div>
+                          <img 
+                            src={result.lipSyncUrl} 
+                            alt="Lip Sync" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <h4 className="text-sm font-medium mt-2">With Lip Sync</h4>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              )}
+              
+              {result.finalVideoUrl && (
+                <CarouselItem>
+                  <Card>
+                    <CardContent className="p-2">
+                      <div className="flex flex-col items-center p-2">
+                        <div className="relative w-full aspect-square flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Button variant="outline" size="icon" className="rounded-full bg-background/80">
+                              <Play className="h-4 w-4" />
+                              <span className="sr-only">Play Video</span>
+                            </Button>
+                          </div>
+                          <img 
+                            src={result.finalVideoUrl} 
+                            alt="Final Video" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <h4 className="text-sm font-medium mt-2">Final Video</h4>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              )}
             </CarouselContent>
             <CarouselPrevious />
             <CarouselNext />
@@ -194,6 +293,56 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
                 <>Animate Image <ArrowRight className="ml-2 h-4 w-4" /></>
               )}
             </Button>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="voiceover" className="space-y-4">
+          <VoiceoverPanel 
+            onGenerateVoiceover={handleVoiceoverGeneration}
+            disabled={!canGenerateVoiceover || isProcessingVoiceover}
+            audioUrl={result.audioUrl}
+          />
+          
+          {canGenerateLipSync && !isProcessingLipSync && result.audioUrl && (
+            <Button 
+              onClick={handleLipSyncGeneration} 
+              disabled={isProcessingLipSync}
+              className="w-full"
+            >
+              <Video className="h-4 w-4 mr-2" />
+              Generate Lip Sync Animation
+            </Button>
+          )}
+          
+          {isProcessingLipSync && (
+            <div className="text-center p-4 bg-primary/10 rounded-md">
+              <p>Generating lip sync animation...</p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="video" className="space-y-4">
+          <VideoPreview 
+            videoUrl={result.finalVideoUrl}
+            isCompleted={result.stage === "completed"}
+            onDownload={handleDownloadVideo}
+          />
+          
+          {canComposeVideo && !isProcessingVideoComposition && (
+            <Button 
+              onClick={handleVideoComposition} 
+              disabled={isProcessingVideoComposition}
+              className="w-full"
+            >
+              <Film className="h-4 w-4 mr-2" />
+              Compose Final Video
+            </Button>
+          )}
+          
+          {isProcessingVideoComposition && (
+            <div className="text-center p-4 bg-primary/10 rounded-md">
+              <p>Composing final video...</p>
+            </div>
           )}
         </TabsContent>
       </Tabs>

@@ -18,6 +18,8 @@ const ProcessingPanel: React.FC<ProcessingPanelProps> = ({ stage, progress }) =>
     "background",
     "animating",
     "voiceover",
+    "lipSync",
+    "videoComposition",
     "completed"
   ];
 
@@ -28,7 +30,7 @@ const ProcessingPanel: React.FC<ProcessingPanelProps> = ({ stage, progress }) =>
     <div className="space-y-4">
       <Progress value={progress} className="h-2" />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stages.map((s, index) => {
           const isPending = index > currentStageIndex;
           const isActive = index === currentStageIndex;

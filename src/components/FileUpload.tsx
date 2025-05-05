@@ -1,7 +1,7 @@
 
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Image, Loader2, Upload, Palette } from "lucide-react";
+import { Image, Loader2, Upload, Palette, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -9,9 +9,13 @@ import {
   processMangaPanel, 
   ProcessingResult, 
   BackgroundType, 
-  AnimationType, 
+  AnimationType,
+  VoiceType,
   generateBackground,
   animateImage,
+  generateVoiceover,
+  generateLipSync,
+  composeVideo,
   finalizeProcessing
 } from "@/services/processingService";
 import ProcessingPanel from "./ProcessingPanel";
@@ -99,12 +103,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
       const result = await animateImage(processingResult.id, animationType);
       setProcessingResult(result);
       setProgress(result.progress);
-      
-      // Finalize the processing after animation
-      const finalResult = await finalizeProcessing(result.id);
-      setProcessingResult(finalResult);
-      setProgress(finalResult.progress);
-      
       toast.success("Animation created successfully");
     } catch (error) {
       console.error("Error animating image:", error);
@@ -112,6 +110,76 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleGenerateVoiceover = async (voiceType: VoiceType, dialogueText: string) => {
+    if (!processingResult) return;
+    
+    setProcessing(true);
+    
+    try {
+      const result = await generateVoiceover(processingResult.id, voiceType, dialogueText);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      toast.success("Voiceover generated successfully");
+    } catch (error) {
+      console.error("Error generating voiceover:", error);
+      toast.error("Failed to generate voiceover");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleGenerateLipSync = async () => {
+    if (!processingResult) return;
+    
+    setProcessing(true);
+    
+    try {
+      const result = await generateLipSync(processingResult.id);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      toast.success("Lip sync animation created successfully");
+    } catch (error) {
+      console.error("Error generating lip sync:", error);
+      toast.error("Failed to generate lip sync");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleComposeVideo = async () => {
+    if (!processingResult) return;
+    
+    setProcessing(true);
+    
+    try {
+      const result = await composeVideo(processingResult.id);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      
+      // Finalize the processing after video composition
+      const finalResult = await finalizeProcessing(result.id);
+      setProcessingResult(finalResult);
+      setProgress(finalResult.progress);
+      
+      toast.success("Video composed successfully");
+    } catch (error) {
+      console.error("Error composing video:", error);
+      toast.error("Failed to compose video");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDownloadVideo = () => {
+    if (!processingResult?.finalVideoUrl) return;
+    
+    // In a real app, this would trigger the download of the video
+    toast.success("Video download started");
+    
+    // Simulate download by opening the URL in a new tab
+    window.open(processingResult.finalVideoUrl, '_blank');
   };
 
   return (
@@ -202,9 +270,22 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
             result={processingResult} 
             onGenerateBackground={handleGenerateBackground}
             onAnimateImage={handleAnimateImage}
+            onGenerateVoiceover={handleGenerateVoiceover}
+            onGenerateLipSync={handleGenerateLipSync}
+            onComposeVideo={handleComposeVideo}
+            onDownloadVideo={handleDownloadVideo}
           />
           
           <div className="flex justify-end gap-2">
+            {processingResult.finalVideoUrl && (
+              <Button 
+                onClick={handleDownloadVideo}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download Video
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => {
