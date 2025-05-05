@@ -16,7 +16,7 @@ const HomePage = () => {
       <main className="flex-1 container px-4 py-8 md:py-12">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight">
-            Transform Manga into Animated Anime
+            Transform Manga into Anime
           </h1>
           <p className="text-xl text-muted-foreground mt-4">
             Upload your manga panels and convert them to animated scenes with AI
