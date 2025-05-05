@@ -20,9 +20,24 @@ export interface ProcessingResult {
   colorizedUrl?: string;
   backgroundUrl?: string;
   animatedUrl?: string;
+  audioUrl?: string;
   stage: ProcessingStage;
   progress: number;
+  backgroundType?: string;
+  animationType?: string;
 }
+
+export type BackgroundType = 
+  | "controlnet" 
+  | "anime-style" 
+  | "realistic" 
+  | "none";
+
+export type AnimationType = 
+  | "pan-zoom" 
+  | "motion-simulation" 
+  | "custom-transitions" 
+  | "none";
 
 // Mock function to simulate image preprocessing
 export const preprocessImage = async (file: File): Promise<ProcessingResult> => {
@@ -79,6 +94,88 @@ export const colorizeImage = async (processingId: string): Promise<ProcessingRes
   }
 };
 
+// Mock function to generate background with ControlNet
+export const generateBackground = async (processingId: string, backgroundType: BackgroundType): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to ControlNet
+    // to generate a background based on the colorized image
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    return {
+      ...result,
+      backgroundUrl: "/placeholder.svg", // Placeholder for background image
+      backgroundType,
+      stage: "background",
+      progress: 75
+    };
+  } catch (error) {
+    console.error("Error generating background:", error);
+    toast.error("Failed to generate background");
+    throw error;
+  }
+};
+
+// Mock function to animate the image
+export const animateImage = async (processingId: string, animationType: AnimationType): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to 
+    // animate the image with the specified animation type
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    return {
+      ...result,
+      animatedUrl: "/placeholder.svg", // Placeholder for animated video
+      animationType,
+      stage: "animating",
+      progress: 90
+    };
+  } catch (error) {
+    console.error("Error animating image:", error);
+    toast.error("Failed to animate image");
+    throw error;
+  }
+};
+
+// Function to finalize processing and mark as completed
+export const finalizeProcessing = async (processingId: string): Promise<ProcessingResult> => {
+  try {
+    // In a real implementation, you would make an API call to 
+    // finalize the processing and get the final result
+    
+    // Mock processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const result = mockResults[processingId];
+    if (!result) {
+      throw new Error("Processing result not found");
+    }
+    
+    return {
+      ...result,
+      stage: "completed",
+      progress: 100
+    };
+  } catch (error) {
+    console.error("Error finalizing processing:", error);
+    toast.error("Failed to finalize processing");
+    throw error;
+  }
+};
+
 // Helper function to generate unique IDs
 const generateId = (): string => {
   return Math.random().toString(36).substring(2, 15);
@@ -98,8 +195,20 @@ export const processMangaPanel = async (file: File): Promise<ProcessingResult> =
     const colorizeResult = await colorizeImage(preprocessResult.id);
     mockResults[colorizeResult.id] = colorizeResult;
     
+    // Step 3: Generate background
+    const backgroundResult = await generateBackground(colorizeResult.id, "anime-style");
+    mockResults[backgroundResult.id] = backgroundResult;
+    
+    // Step 4: Animate the image
+    const animateResult = await animateImage(backgroundResult.id, "pan-zoom");
+    mockResults[animateResult.id] = animateResult;
+    
+    // Step 5: Finalize processing
+    const finalResult = await finalizeProcessing(animateResult.id);
+    mockResults[finalResult.id] = finalResult;
+    
     // Return the current processing state
-    return colorizeResult;
+    return finalResult;
   } catch (error) {
     console.error("Error processing manga panel:", error);
     toast.error("Failed to process manga panel");
@@ -107,7 +216,7 @@ export const processMangaPanel = async (file: File): Promise<ProcessingResult> =
   }
 };
 
-// Get the current processing state
+// Get the current processing status
 export const getProcessingStatus = async (processingId: string): Promise<ProcessingResult> => {
   const result = mockResults[processingId];
   if (!result) {

@@ -5,7 +5,15 @@ import { Image, Loader2, Upload, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { processMangaPanel, ProcessingResult } from "@/services/processingService";
+import { 
+  processMangaPanel, 
+  ProcessingResult, 
+  BackgroundType, 
+  AnimationType, 
+  generateBackground,
+  animateImage,
+  finalizeProcessing
+} from "@/services/processingService";
 import ProcessingPanel from "./ProcessingPanel";
 import ColorizedPreview from "./ColorizedPreview";
 
@@ -59,6 +67,48 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
     } catch (error) {
       console.error("Error processing image:", error);
       toast.error("Failed to process image");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleGenerateBackground = async (backgroundType: BackgroundType) => {
+    if (!processingResult) return;
+    
+    setProcessing(true);
+    
+    try {
+      const result = await generateBackground(processingResult.id, backgroundType);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      toast.success("Background generated successfully");
+    } catch (error) {
+      console.error("Error generating background:", error);
+      toast.error("Failed to generate background");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleAnimateImage = async (animationType: AnimationType) => {
+    if (!processingResult) return;
+    
+    setProcessing(true);
+    
+    try {
+      const result = await animateImage(processingResult.id, animationType);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      
+      // Finalize the processing after animation
+      const finalResult = await finalizeProcessing(result.id);
+      setProcessingResult(finalResult);
+      setProgress(finalResult.progress);
+      
+      toast.success("Animation created successfully");
+    } catch (error) {
+      console.error("Error animating image:", error);
+      toast.error("Failed to animate image");
     } finally {
       setProcessing(false);
     }
@@ -133,7 +183,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
                   ) : (
                     <>
                       <Palette className="h-4 w-4 mr-2" />
-                      Colorize Image
+                      Process Image
                     </>
                   )}
                 </Button>
@@ -148,7 +198,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
             progress={processingResult.progress} 
           />
           
-          <ColorizedPreview result={processingResult} />
+          <ColorizedPreview 
+            result={processingResult} 
+            onGenerateBackground={handleGenerateBackground}
+            onAnimateImage={handleAnimateImage}
+          />
           
           <div className="flex justify-end gap-2">
             <Button 
