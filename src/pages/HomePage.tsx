@@ -1,9 +1,11 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import FileUpload from "@/components/FileUpload";
 import Header from "@/components/Header";
 import { Separator } from "@/components/ui/separator";
-import { Palette, Image, Wand, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Palette, Image, Wand, Filter, Mic, Film, ArrowRight } from "lucide-react";
 
 const HomePage = () => {
   const handleFileUploaded = (file: File) => {
@@ -21,6 +23,18 @@ const HomePage = () => {
           <p className="text-xl text-muted-foreground mt-4">
             Upload your manga panels and convert them to animated scenes with AI
           </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <Link to="/process">
+              <Button size="lg" className="gap-2">
+                Start Converting <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/gallery">
+              <Button variant="outline" size="lg">
+                View Gallery
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="max-w-3xl mx-auto">
@@ -71,42 +85,42 @@ const HomePage = () => {
             <div className="mt-8 grid md:grid-cols-2 gap-6">
               <div className="bg-card p-6 rounded-lg shadow-sm">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Filter className="h-5 w-5 text-primary" />
+                  <Mic className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium">Colorization Technologies</h3>
+                <h3 className="text-lg font-medium">Add Voiceover</h3>
                 <ul className="mt-2 space-y-2 text-muted-foreground">
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>Stable Diffusion with anime-trained models</span>
+                    <span>ElevenLabs voices for realistic speech</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>PaintsChainer API for professional-grade colorization</span>
+                    <span>D-ID for lip sync and facial animation</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>ControlNet for detailed texture and lighting</span>
+                    <span>Multiple voice types and languages</span>
                   </li>
                 </ul>
               </div>
               
               <div className="bg-card p-6 rounded-lg shadow-sm">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Wand className="h-5 w-5 text-primary" />
+                  <Film className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium">Animation Technologies</h3>
+                <h3 className="text-lg font-medium">Create Final Video</h3>
                 <ul className="mt-2 space-y-2 text-muted-foreground">
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>Kaiber AI for dynamic motion generation</span>
+                    <span>Combine animated video with voiceover</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>RunwayML Gen-2 for realistic movements</span>
+                    <span>Add subtitles and background music</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span>Custom transitions with Remotion and ffmpeg</span>
+                    <span>Download and share the final result</span>
                   </li>
                 </ul>
               </div>

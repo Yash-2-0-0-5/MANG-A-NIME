@@ -1,59 +1,36 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { Code, Image, Menu, Upload } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Wand } from "lucide-react";
 
 const Header = () => {
+  const location = useLocation();
+  
   return (
     <header className="border-b border-border">
-      <div className="container flex items-center justify-between h-16 px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[250px]">
-              <nav className="flex flex-col gap-4 mt-8">
-                <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-                  <Image className="h-5 w-5" />
-                  <span>MangaMotion</span>
-                </Link>
-                <Link to="/projects" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                  <Code className="h-5 w-5" />
-                  <span>My Projects</span>
-                </Link>
-                <Link to="/upload" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                  <Upload className="h-5 w-5" />
-                  <span>Upload</span>
-                </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-          <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-            <Image className="h-5 w-5" />
-            <span>MangaMotion</span>
+      <div className="container flex h-16 items-center justify-between px-4">
+        <Link to="/" className="flex items-center gap-2">
+          <Wand className="h-6 w-6 text-primary" />
+          <span className="font-bold text-xl">MangaMotion</span>
+        </Link>
+        <nav className="flex items-center gap-4">
+          <Link to="/">
+            <Button variant={location.pathname === "/" ? "default" : "ghost"}>
+              Home
+            </Button>
           </Link>
-        </div>
-        <div className="hidden md:flex items-center gap-6">
-          <nav className="flex items-center gap-6">
-            <Link to="/projects" className="text-muted-foreground hover:text-foreground">
-              My Projects
-            </Link>
-            <Link to="/upload" className="text-muted-foreground hover:text-foreground">
-              Upload
-            </Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="default">
-            <Upload className="h-4 w-4 mr-2" />
-            New Upload
-          </Button>
-        </div>
+          <Link to="/process">
+            <Button variant={location.pathname === "/process" ? "default" : "ghost"}>
+              Process
+            </Button>
+          </Link>
+          <Link to="/gallery">
+            <Button variant={location.pathname === "/gallery" ? "default" : "ghost"}>
+              Gallery
+            </Button>
+          </Link>
+        </nav>
       </div>
     </header>
   );
