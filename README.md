@@ -107,17 +107,6 @@ This project integrates with several AI APIs:
 - **ElevenLabs**: For voiceover generation
 - **D-ID**: For lip synchronization
 
-## 🛠️ Environment Variables
-
-Create a `.env` file in the project root:
-
-```
-VITE_PAINTSCHAINER_API_KEY=your_paintschainer_key
-VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
-VITE_DID_API_KEY=your_did_key
-VITE_REPLICATE_API_TOKEN=your_replicate_token
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -134,7 +123,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📬 Contact
 
-[@Yash Dharurkar](www.linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
+[Yash Dharurkar](https://linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
 
 Project Link: [https://github.com/yourusername/manga-to-anime-converter](https://github.com/yourusername/manga-to-anime-converter)
 
