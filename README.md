@@ -22,22 +22,60 @@ AI Manga-to-Anime Converter is a web application that lets you transform static 
 ## 🏗️ Project Structure
 
 ```
-src/
-├── components/           # React components
-│   ├── ui/               # shadcn/UI components
-│   ├── FileUpload.tsx    # File upload component
-│   ├── ProcessingSteps.tsx # Processing progress indicator
-│   └── ...
-├── hooks/                # Custom React hooks
-│   ├── useProcessing.ts  # Processing workflow hook
-│   └── ...
-├── pages/                # Page components
-│   ├── HomePage.tsx      # Landing page
-│   ├── ProcessPage.tsx   # Main processing page
-│   └── GalleryPage.tsx   # Processed videos gallery
-├── services/             # API and processing services
-│   └── processingService.ts # Manga processing service
-└── ...
+/
+├─ public/
+│  ├─ favicon.ico
+│  ├─ placeholder.svg
+│  └─ robots.txt
+├─ src/
+│  ├─ components/
+│  │  ├─ ui/                         # shadcn/UI components
+│  │  │  ├─ accordion.tsx
+│  │  │  ├─ alert-dialog.tsx
+│  │  │  ├─ alert.tsx
+│  │  │  └─ ... (many more UI components)
+│  │  ├─ AnimationOptions.tsx        # Animation selection component
+│  │  ├─ BackgroundOptions.tsx       # Background generation options
+│  │  ├─ ColorizedPreview.tsx        # Preview component for colorized manga
+│  │  ├─ FileUpload.tsx              # File upload and processing component
+│  │  ├─ Header.tsx                  # App header component
+│  │  ├─ ProcessingPanel.tsx         # Processing status panel
+│  │  ├─ ProcessingSteps.tsx         # Steps indicator component
+│  │  ├─ VideoPreview.tsx            # Video preview component
+│  │  └─ VoiceoverPanel.tsx          # Voice generation panel
+│  ├─ hooks/
+│  │  ├─ use-mobile.tsx              # Hook for mobile detection
+│  │  ├─ use-toast.ts                # Toast notification hook
+│  │  └─ useProcessing.ts            # Main processing workflow hook
+│  ├─ lib/
+│  │  └─ utils.ts                    # Utility functions
+│  ├─ pages/
+│  │  ├─ GalleryPage.tsx             # Gallery of processed videos
+│  │  ├─ HomePage.tsx                # Landing page
+│  │  ├─ Index.tsx                   # Index page
+│  │  ├─ NotFound.tsx                # 404 page
+│  │  └─ ProcessPage.tsx             # Main processing page
+│  ├─ services/
+│  │  ├─ processingService.ts        # Manga processing service
+│  │  └─ uploadService.ts            # File upload service
+│  ├─ App.tsx                        # Main App component
+│  ├─ index.css                      # Global CSS
+│  ├─ main.tsx                       # App entry point
+│  └─ vite-env.d.ts                  # TypeScript declarations
+├─ .gitignore                        # Git ignore file
+├─ bun.lockb                         # Bun lock file
+├─ components.json                   # shadcn/ui configuration
+├─ eslint.config.js                  # ESLint configuration
+├─ index.html                        # HTML entry point
+├─ package-lock.json                 # npm lock file
+├─ package.json                      # Package dependencies
+├─ postcss.config.js                 # PostCSS configuration
+├─ README.md                         # Project README
+├─ tailwind.config.ts                # Tailwind CSS configuration
+├─ tsconfig.app.json                 # TypeScript app configuration
+├─ tsconfig.json                     # TypeScript configuration
+├─ tsconfig.node.json                # TypeScript node configuration
+└─ vite.config.ts                    # Vite configuration
 ```
 
 ## ⚙️ Tech Stack
