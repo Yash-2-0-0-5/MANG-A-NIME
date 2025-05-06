@@ -134,7 +134,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📬 Contact
 
-Your Name - [@Yash Dharurkar](www.linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
+[@Yash Dharurkar](www.linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
 
 Project Link: [https://github.com/yourusername/manga-to-anime-converter](https://github.com/yourusername/manga-to-anime-converter)
 
