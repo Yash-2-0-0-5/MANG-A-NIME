@@ -107,8 +107,6 @@ This project integrates with several AI APIs:
 - **ElevenLabs**: For voiceover generation
 - **D-ID**: For lip synchronization
 
-> ⚠️ **Note**: You'll need to obtain API keys for these services and configure them in your environment variables.
-
 ## 🛠️ Environment Variables
 
 Create a `.env` file in the project root:
@@ -136,10 +134,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📬 Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter) - email@example.com
+Your Name - [@Yash Dharurkar](www.linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
 
 Project Link: [https://github.com/yourusername/manga-to-anime-converter](https://github.com/yourusername/manga-to-anime-converter)
 
 ---
 
-Developed with ❤️ by [Your Name]
+Developed by Yash Dharurkar
