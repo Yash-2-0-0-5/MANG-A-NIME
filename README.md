@@ -3,7 +3,7 @@
 
 > Transform static manga panels into fully animated anime-style scenes with AI-powered colorization, background generation, animation, and voiceover.
 
-![MangaMotion]([https://via.placeholder.com/1000x300?text=Manga+to+Anime+AI+Pipeline](https://pplx-res.cloudinary.com/image/upload/v1746977755/gpt4o_images/oogvvra86qbvft3hyblm.png))
+![MangaMotion](https://pplx-res.cloudinary.com/image/upload/v1746977755/gpt4o_images/oogvvra86qbvft3hyblm.png)
 
 ## 🚀 Overview
 
@@ -131,9 +131,9 @@ python app.py
 
 ## 🖼️ Screenshots
 
-![Upload Process](https://via.placeholder.com/600x400?text=Upload+Screen)
-![Processing](https://via.placeholder.com/600x400?text=Processing+Screen)
-![Final Result](https://via.placeholder.com/600x400?text=Final+Result)
+![Upload Process](https://files.oaiusercontent.com/file-58WTopGAzdwJCQ7PuwDeez?se=2025-05-11T21%3A39%3A15Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3DScreenshot%25202025-05-12%2520020053.png&sig=Nd3YcJBtUsVL073/qd6sL/Yme22tlJKAAljpr3KMXh8%3D)
+![Processing](https://files09.oaiusercontent.com/file-Ma2a4YhNGYhJaSjpBpKCJw?se=2025-05-11T21%3A39%3A15Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3DScreenshot%25202025-05-12%2520020503.png&sig=y1o0bK3bo/W%2B1qXzBUQVuxVeY%2BjP4XsH/yWKW1pzdog%3D)
+![Final Result](https://files.oaiusercontent.com/file-LmrCT9dVFjC5rE4f5J4XiL?se=2025-05-11T21%3A39%3A15Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3DScreenshot%25202025-05-12%2520020517.png&sig=0eojljHFjIg5K7/OInwg249ZiNLl5D32stmAMsR60jg%3D)
 
 ## 📢 API Integration
 
@@ -161,7 +161,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📬 Contact
 
-[Yash Dharurkar](https://linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
+Yash Dharurkar [LINKEDIN](https://linkedin.com/in/yashdharurkar) - yashdharurkar@gmail.com
 
 Project Link: [https://github.com/yourusername/manga-to-anime-converter](https://github.com/yourusername/manga-to-anime-converter)
 
