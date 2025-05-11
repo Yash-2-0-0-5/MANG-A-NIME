@@ -3,7 +3,7 @@
 
 > Transform static manga panels into fully animated anime-style scenes with AI-powered colorization, background generation, animation, and voiceover.
 
-![MangaMotion](https://via.placeholder.com/1000x300?text=Manga+to+Anime+AI+Pipeline)
+![MangaMotion]([https://via.placeholder.com/1000x300?text=Manga+to+Anime+AI+Pipeline](https://pplx-res.cloudinary.com/image/upload/v1746977755/gpt4o_images/oogvvra86qbvft3hyblm.png))
 
 ## 🚀 Overview
 
