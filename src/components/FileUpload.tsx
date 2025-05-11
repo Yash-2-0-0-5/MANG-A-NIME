@@ -25,7 +25,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
     handleGenerateBackground,
     handleAnimateImage,
     handleGenerateVoiceover,
-    handleGenerateLipSync,
     handleComposeVideo,
     handleDownloadVideo
   } = useProcessing();
@@ -136,7 +135,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
             onGenerateBackground={handleGenerateBackground}
             onAnimateImage={handleAnimateImage}
             onGenerateVoiceover={handleGenerateVoiceover}
-            onGenerateLipSync={handleGenerateLipSync}
             onComposeVideo={handleComposeVideo}
             onDownloadVideo={handleDownloadVideo}
           />
