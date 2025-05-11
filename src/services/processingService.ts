@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { uploadFile } from "@/services/uploadService";
 
 // Define the endpoint for Supabase Edge Functions
 const SUPABASE_URL = "https://xnbouliiisjqyttxefir.supabase.co";
@@ -12,7 +13,6 @@ export type ProcessingStage =
   | "background" 
   | "animating" 
   | "voiceover" 
-  | "lipSync"
   | "videoComposition"
   | "completed";
 
@@ -24,7 +24,6 @@ export interface ProcessingResult {
   backgroundUrl?: string;
   animatedUrl?: string;
   audioUrl?: string;
-  lipSyncUrl?: string;
   finalVideoUrl?: string;
   dialogueText?: string;
   stage: ProcessingStage;
@@ -261,53 +260,6 @@ export const generateVoiceover = async (jobId: string, voiceType: VoiceType, dia
   }
 };
 
-// Function to generate lip sync
-export const generateLipSync = async (jobId: string): Promise<ProcessingResult> => {
-  try {
-    // Get the job info
-    const { data: job, error: jobError } = await supabase
-      .from('processing_jobs')
-      .select('*')
-      .eq('id', jobId)
-      .single();
-      
-    if (jobError || !job) {
-      throw jobError || new Error('Job not found');
-    }
-    
-    // Update job status
-    const { data, error } = await supabase
-      .from('processing_jobs')
-      .update({
-        status: 'lipSync',
-        progress: 95
-      })
-      .eq('id', jobId)
-      .select('*')
-      .single();
-      
-    if (error) {
-      throw error;
-    }
-    
-    return {
-      id: jobId,
-      originalUrl: job.original_image_url,
-      colorizedUrl: job.colorized_image_url,
-      backgroundUrl: job.background_image_url,
-      animatedUrl: job.animated_url,
-      audioUrl: job.audio_url,
-      lipSyncUrl: '/placeholder.svg', // In a real app, this would be the lip sync video
-      stage: "lipSync",
-      progress: 95
-    };
-  } catch (error) {
-    console.error("Error generating lip sync:", error);
-    toast.error("Failed to generate lip sync");
-    throw error;
-  }
-};
-
 // Function to compose the final video
 export const composeVideo = async (jobId: string): Promise<ProcessingResult> => {
   try {
@@ -344,7 +296,6 @@ export const composeVideo = async (jobId: string): Promise<ProcessingResult> => 
       backgroundUrl: job.background_image_url,
       animatedUrl: job.animated_url,
       audioUrl: job.audio_url,
-      lipSyncUrl: job.lip_sync_url,
       finalVideoUrl: '/placeholder.svg', // In a real app, this would be the final video
       stage: "videoComposition",
       progress: 98
@@ -392,7 +343,6 @@ export const finalizeProcessing = async (jobId: string): Promise<ProcessingResul
       backgroundUrl: job.background_image_url,
       animatedUrl: job.animated_url,
       audioUrl: job.audio_url,
-      lipSyncUrl: job.lip_sync_url,
       finalVideoUrl: job.final_video_url || job.colorized_image_url,
       stage: "completed",
       progress: 100
@@ -454,7 +404,6 @@ export const getProcessingStatus = async (jobId: string): Promise<ProcessingResu
       backgroundUrl: data.background_image_url,
       animatedUrl: data.animated_url,
       audioUrl: data.audio_url,
-      lipSyncUrl: data.lip_sync_url,
       finalVideoUrl: data.final_video_url,
       stage: data.status as ProcessingStage,
       progress: data.progress
