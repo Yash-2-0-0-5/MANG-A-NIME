@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -10,7 +9,6 @@ import {
   generateBackground,
   animateImage,
   generateVoiceover,
-  generateLipSync,
   composeVideo,
   finalizeProcessing,
   getProcessingStatus
@@ -135,24 +133,6 @@ export default function useProcessing() {
     }
   };
 
-  const handleGenerateLipSync = async () => {
-    if (!processingResult || !jobId) return;
-    
-    setProcessing(true);
-    
-    try {
-      const result = await generateLipSync(jobId);
-      setProcessingResult(result);
-      setProgress(result.progress);
-      toast.success("Lip sync animation created successfully");
-    } catch (error) {
-      console.error("Error generating lip sync:", error);
-      toast.error("Failed to generate lip sync");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
   const handleComposeVideo = async () => {
     if (!processingResult || !jobId) return;
     
@@ -199,7 +179,6 @@ export default function useProcessing() {
     handleGenerateBackground,
     handleAnimateImage,
     handleGenerateVoiceover,
-    handleGenerateLipSync,
     handleComposeVideo,
     handleDownloadVideo
   };

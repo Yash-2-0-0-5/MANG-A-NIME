@@ -21,7 +21,6 @@ interface ColorizedPreviewProps {
   onGenerateBackground?: (type: BackgroundType) => void;
   onAnimateImage?: (type: AnimationType) => void;
   onGenerateVoiceover?: (type: VoiceType, dialogueText: string) => void;
-  onGenerateLipSync?: () => void;
   onComposeVideo?: () => void;
   onDownloadVideo?: () => void;
 }
@@ -31,7 +30,6 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
   onGenerateBackground,
   onAnimateImage,
   onGenerateVoiceover,
-  onGenerateLipSync,
   onComposeVideo,
   onDownloadVideo
 }) => {
@@ -46,14 +44,12 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
   const isProcessingBackground = result.stage === "background" && !result.backgroundUrl;
   const isProcessingAnimation = result.stage === "animating" && !result.animatedUrl;
   const isProcessingVoiceover = result.stage === "voiceover" && !result.audioUrl;
-  const isProcessingLipSync = result.stage === "lipSync" && !result.lipSyncUrl;
   const isProcessingVideoComposition = result.stage === "videoComposition" && !result.finalVideoUrl;
   
-  const canGenerateBackground = result.colorizedUrl && result.stage !== "background" && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
-  const canAnimateImage = result.backgroundUrl && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
-  const canGenerateVoiceover = result.animatedUrl && result.stage !== "voiceover" && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
-  const canGenerateLipSync = result.audioUrl && result.stage !== "lipSync" && result.stage !== "videoComposition" && result.stage !== "completed";
-  const canComposeVideo = result.animatedUrl && (result.audioUrl || result.lipSyncUrl) && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canGenerateBackground = result.colorizedUrl && result.stage !== "background" && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canAnimateImage = result.backgroundUrl && result.stage !== "animating" && result.stage !== "voiceover" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canGenerateVoiceover = result.animatedUrl && result.stage !== "voiceover" && result.stage !== "videoComposition" && result.stage !== "completed";
+  const canComposeVideo = result.animatedUrl && result.audioUrl && result.stage !== "videoComposition" && result.stage !== "completed";
   const canDownloadVideo = result.finalVideoUrl && result.stage === "completed";
 
   const handleBackgroundGeneration = () => {
@@ -71,12 +67,6 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
   const handleVoiceoverGeneration = (voiceType: VoiceType, dialogueText: string) => {
     if (onGenerateVoiceover) {
       onGenerateVoiceover(voiceType, dialogueText);
-    }
-  };
-
-  const handleLipSyncGeneration = () => {
-    if (onGenerateLipSync) {
-      onGenerateLipSync();
     }
   };
 
@@ -190,31 +180,6 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
                 </CarouselItem>
               )}
               
-              {result.lipSyncUrl && (
-                <CarouselItem>
-                  <Card>
-                    <CardContent className="p-2">
-                      <div className="flex flex-col items-center p-2">
-                        <div className="relative w-full aspect-square flex items-center justify-center">
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Button variant="outline" size="icon" className="rounded-full bg-background/80">
-                              <Play className="h-4 w-4" />
-                              <span className="sr-only">Play Lip Sync</span>
-                            </Button>
-                          </div>
-                          <img 
-                            src={result.lipSyncUrl} 
-                            alt="Lip Sync" 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <h4 className="text-sm font-medium mt-2">With Lip Sync</h4>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              )}
-              
               {result.finalVideoUrl && (
                 <CarouselItem>
                   <Card>
@@ -303,20 +268,20 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
             audioUrl={result.audioUrl}
           />
           
-          {canGenerateLipSync && !isProcessingLipSync && result.audioUrl && (
+          {canComposeVideo && !isProcessingVideoComposition && (
             <Button 
-              onClick={handleLipSyncGeneration} 
-              disabled={isProcessingLipSync}
-              className="w-full"
+              onClick={handleVideoComposition} 
+              disabled={isProcessingVideoComposition}
+              className="w-full mt-4"
             >
-              <Video className="h-4 w-4 mr-2" />
-              Generate Lip Sync Animation
+              <Film className="h-4 w-4 mr-2" />
+              Compose Final Video
             </Button>
           )}
           
-          {isProcessingLipSync && (
-            <div className="text-center p-4 bg-primary/10 rounded-md">
-              <p>Generating lip sync animation...</p>
+          {isProcessingVideoComposition && (
+            <div className="text-center p-4 bg-primary/10 rounded-md mt-4">
+              <p>Composing final video...</p>
             </div>
           )}
         </TabsContent>

@@ -18,7 +18,6 @@ const ProcessingPanel: React.FC<ProcessingPanelProps> = ({ stage, progress }) =>
     "background",
     "animating",
     "voiceover",
-    "lipSync",
     "videoComposition",
     "completed"
   ];

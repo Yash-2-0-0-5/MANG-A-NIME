@@ -16,7 +16,6 @@ const ProcessingSteps: React.FC<ProcessingStepsProps> = ({ currentStage, progres
     { stage: 'background', label: 'Background' },
     { stage: 'animating', label: 'Animate' },
     { stage: 'voiceover', label: 'Voiceover' },
-    { stage: 'lipSync', label: 'Lip Sync' },
     { stage: 'videoComposition', label: 'Compose Video' },
     { stage: 'completed', label: 'Complete' },
   ];
