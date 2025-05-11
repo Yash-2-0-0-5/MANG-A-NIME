@@ -12,7 +12,8 @@ import {
   generateVoiceover,
   generateLipSync,
   composeVideo,
-  finalizeProcessing
+  finalizeProcessing,
+  getProcessingStatus
 } from '@/services/processingService';
 import { uploadFile } from '@/services/uploadService';
 
@@ -22,6 +23,7 @@ export default function useProcessing() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -32,6 +34,25 @@ export default function useProcessing() {
   const clearFile = () => {
     setFile(null);
     setPreview(null);
+    setProcessingResult(null);
+    setJobId(null);
+  };
+
+  const checkProcessingStatus = async () => {
+    if (!jobId) return;
+    
+    try {
+      const result = await getProcessingStatus(jobId);
+      setProcessingResult(result);
+      setProgress(result.progress);
+      
+      // If still processing, check again in a few seconds
+      if (result.progress < 100) {
+        setTimeout(checkProcessingStatus, 3000);
+      }
+    } catch (error) {
+      console.error("Error checking processing status:", error);
+    }
   };
 
   const processImage = async () => {
@@ -41,14 +62,17 @@ export default function useProcessing() {
     setProgress(0);
     
     try {
-      // First upload the file
-      await uploadFile(file);
-      
-      // Then start processing
+      // Process the image
       const result = await processMangaPanel(file);
+      
+      setJobId(result.id);
       setProcessingResult(result);
       setProgress(result.progress);
+      
       toast.success("Image processed successfully");
+      
+      // Start polling for status updates
+      setTimeout(checkProcessingStatus, 3000);
     } catch (error) {
       console.error("Error processing image:", error);
       toast.error("Failed to process image");
@@ -58,12 +82,12 @@ export default function useProcessing() {
   };
 
   const handleGenerateBackground = async (backgroundType: BackgroundType) => {
-    if (!processingResult) return;
+    if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await generateBackground(processingResult.id, backgroundType);
+      const result = await generateBackground(jobId, backgroundType);
       setProcessingResult(result);
       setProgress(result.progress);
       toast.success("Background generated successfully");
@@ -76,12 +100,12 @@ export default function useProcessing() {
   };
 
   const handleAnimateImage = async (animationType: AnimationType) => {
-    if (!processingResult) return;
+    if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await animateImage(processingResult.id, animationType);
+      const result = await animateImage(jobId, animationType);
       setProcessingResult(result);
       setProgress(result.progress);
       toast.success("Animation created successfully");
@@ -94,12 +118,12 @@ export default function useProcessing() {
   };
 
   const handleGenerateVoiceover = async (voiceType: VoiceType, dialogueText: string) => {
-    if (!processingResult) return;
+    if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await generateVoiceover(processingResult.id, voiceType, dialogueText);
+      const result = await generateVoiceover(jobId, voiceType, dialogueText);
       setProcessingResult(result);
       setProgress(result.progress);
       toast.success("Voiceover generated successfully");
@@ -112,12 +136,12 @@ export default function useProcessing() {
   };
 
   const handleGenerateLipSync = async () => {
-    if (!processingResult) return;
+    if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await generateLipSync(processingResult.id);
+      const result = await generateLipSync(jobId);
       setProcessingResult(result);
       setProgress(result.progress);
       toast.success("Lip sync animation created successfully");
@@ -130,17 +154,17 @@ export default function useProcessing() {
   };
 
   const handleComposeVideo = async () => {
-    if (!processingResult) return;
+    if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await composeVideo(processingResult.id);
+      const result = await composeVideo(jobId);
       setProcessingResult(result);
       setProgress(result.progress);
       
       // Finalize the processing after video composition
-      const finalResult = await finalizeProcessing(result.id);
+      const finalResult = await finalizeProcessing(jobId);
       setProcessingResult(finalResult);
       setProgress(finalResult.progress);
       
@@ -159,7 +183,7 @@ export default function useProcessing() {
     // In a real app, this would trigger the download of the video
     toast.success("Video download started");
     
-    // Simulate download by opening the URL in a new tab
+    // Open the URL in a new tab
     window.open(processingResult.finalVideoUrl, '_blank');
   };
 

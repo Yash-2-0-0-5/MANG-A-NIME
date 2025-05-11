@@ -9,7 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      processing_jobs: {
+        Row: {
+          animated_url: string | null
+          audio_url: string | null
+          background_image_url: string | null
+          colorized_image_url: string | null
+          created_at: string | null
+          final_video_url: string | null
+          id: string
+          original_image_url: string
+          progress: number | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          animated_url?: string | null
+          audio_url?: string | null
+          background_image_url?: string | null
+          colorized_image_url?: string | null
+          created_at?: string | null
+          final_video_url?: string | null
+          id?: string
+          original_image_url: string
+          progress?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          animated_url?: string | null
+          audio_url?: string | null
+          background_image_url?: string | null
+          colorized_image_url?: string | null
+          created_at?: string | null
+          final_video_url?: string | null
+          id?: string
+          original_image_url?: string
+          progress?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

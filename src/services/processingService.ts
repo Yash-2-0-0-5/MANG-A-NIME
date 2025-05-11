@@ -1,7 +1,9 @@
+
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Mock API endpoints (in a real app, these would be real API endpoints)
-const API_BASE_URL = "https://api.example.com"; // Replace with actual API URL when available
+// Define the endpoint for Supabase Edge Functions
+const SUPABASE_URL = "https://xnbouliiisjqyttxefir.supabase.co";
 
 export type ProcessingStage = 
   | "uploaded" 
@@ -51,24 +53,34 @@ export type VoiceType =
   | "robot"
   | "none";
 
-// Mock function to simulate image preprocessing
-export const preprocessImage = async (file: File): Promise<ProcessingResult> => {
+// Function to preprocess the image
+export const preprocessImage = async (jobId: string, imageUrl: string): Promise<ProcessingResult> => {
   try {
-    // Convert file to base64 for preview
-    const fileUrl = URL.createObjectURL(file);
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'preprocessing',
+        progress: 20
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
+    }
     
-    // In a real implementation, you would upload the file to the server here
-    // and get back a response with the processing ID and status
-
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (!data) {
+      throw new Error('Job not found');
+    }
     
     return {
-      id: generateId(),
-      originalUrl: fileUrl,
-      preprocessedUrl: fileUrl, // In a real app, this would be the URL of the preprocessed image
+      id: jobId,
+      originalUrl: imageUrl,
+      preprocessedUrl: imageUrl, // In a real app, this would be the preprocessed image
       stage: "preprocessing",
-      progress: 25
+      progress: 20
     };
   } catch (error) {
     console.error("Error preprocessing image:", error);
@@ -77,25 +89,26 @@ export const preprocessImage = async (file: File): Promise<ProcessingResult> => 
   }
 };
 
-// Mock function to simulate image colorization
-export const colorizeImage = async (processingId: string): Promise<ProcessingResult> => {
+// Function to colorize the image using our Supabase Edge Function
+export const colorizeImage = async (jobId: string, imageUrl: string): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // trigger colorization of the preprocessed image
+    // Call the colorize-image Edge Function
+    const { data, error } = await supabase.functions.invoke("colorize-image", {
+      body: { jobId, imageUrl }
+    });
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (error) {
+      throw error;
+    }
     
-    // For demo purposes, we'll use a placeholder colorized image
-    // In a real app, you would get this URL from your backend
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    if (!data || !data.colorizedImageUrl) {
+      throw new Error('Colorization failed');
     }
     
     return {
-      ...result,
-      colorizedUrl: "/placeholder.svg", // Placeholder for colorized image
+      id: jobId,
+      originalUrl: imageUrl,
+      colorizedUrl: data.colorizedImageUrl,
       stage: "colorizing",
       progress: 50
     };
@@ -106,26 +119,45 @@ export const colorizeImage = async (processingId: string): Promise<ProcessingRes
   }
 };
 
-// Mock function to generate background with ControlNet
-export const generateBackground = async (processingId: string, backgroundType: BackgroundType): Promise<ProcessingResult> => {
+// Function to generate a background
+export const generateBackground = async (jobId: string, backgroundType: BackgroundType): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to ControlNet
-    // to generate a background based on the colorized image
-    
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
     }
     
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'background',
+        progress: 60
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    // In a real implementation, this would call a background generation API
+    // For now, we'll just use the colorized image
     return {
-      ...result,
-      backgroundUrl: "/placeholder.svg", // Placeholder for background image
-      backgroundType,
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.colorized_image_url,
+      backgroundType: backgroundType,
       stage: "background",
-      progress: 75
+      progress: 70
     };
   } catch (error) {
     console.error("Error generating background:", error);
@@ -134,26 +166,45 @@ export const generateBackground = async (processingId: string, backgroundType: B
   }
 };
 
-// Mock function to animate the image
-export const animateImage = async (processingId: string, animationType: AnimationType): Promise<ProcessingResult> => {
+// Function to animate the image
+export const animateImage = async (jobId: string, animationType: AnimationType): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // animate the image with the specified animation type
-    
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
     }
     
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'animating',
+        progress: 80
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    // In a real implementation, this would call an animation API
     return {
-      ...result,
-      animatedUrl: "/placeholder.svg", // Placeholder for animated video
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.background_image_url || job.colorized_image_url,
+      animatedUrl: job.colorized_image_url,
       animationType,
       stage: "animating",
-      progress: 90
+      progress: 85
     };
   } catch (error) {
     console.error("Error animating image:", error);
@@ -162,27 +213,46 @@ export const animateImage = async (processingId: string, animationType: Animatio
   }
 };
 
-// New function to generate voiceover
-export const generateVoiceover = async (processingId: string, voiceType: VoiceType, dialogueText: string): Promise<ProcessingResult> => {
+// Function to generate voiceover
+export const generateVoiceover = async (jobId: string, voiceType: VoiceType, dialogueText: string): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // a service like ElevenLabs to generate the voiceover
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
+    }
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'voiceover',
+        progress: 90
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
     }
     
     return {
-      ...result,
-      audioUrl: "/placeholder.svg", // In real app, this would be audio file URL
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.background_image_url,
+      animatedUrl: job.animated_url,
+      audioUrl: '/placeholder.svg', // In a real app, this would be the generated audio
       dialogueText,
       voiceType,
       stage: "voiceover",
-      progress: 80
+      progress: 90
     };
   } catch (error) {
     console.error("Error generating voiceover:", error);
@@ -191,30 +261,45 @@ export const generateVoiceover = async (processingId: string, voiceType: VoiceTy
   }
 };
 
-// New function to generate lip sync
-export const generateLipSync = async (processingId: string): Promise<ProcessingResult> => {
+// Function to generate lip sync
+export const generateLipSync = async (jobId: string): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // a service like D-ID to generate the lip sync
-    
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
     }
     
-    // Ensure we have voice before applying lip sync
-    if (!result.audioUrl) {
-      throw new Error("Voice audio is required for lip sync");
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'lipSync',
+        progress: 95
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
     }
     
     return {
-      ...result,
-      lipSyncUrl: "/placeholder.svg", // In real app, this would be animated face with lip sync
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.background_image_url,
+      animatedUrl: job.animated_url,
+      audioUrl: job.audio_url,
+      lipSyncUrl: '/placeholder.svg', // In a real app, this would be the lip sync video
       stage: "lipSync",
-      progress: 85
+      progress: 95
     };
   } catch (error) {
     console.error("Error generating lip sync:", error);
@@ -223,25 +308,46 @@ export const generateLipSync = async (processingId: string): Promise<ProcessingR
   }
 };
 
-// New function to compose the final video
-export const composeVideo = async (processingId: string): Promise<ProcessingResult> => {
+// Function to compose the final video
+export const composeVideo = async (jobId: string): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // compose the final video using ffmpeg or similar
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
+    }
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 3500));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'videoComposition',
+        progress: 98
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
     }
     
     return {
-      ...result,
-      finalVideoUrl: "/placeholder.svg", // In real app, this would be final video URL
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.background_image_url,
+      animatedUrl: job.animated_url,
+      audioUrl: job.audio_url,
+      lipSyncUrl: job.lip_sync_url,
+      finalVideoUrl: '/placeholder.svg', // In a real app, this would be the final video
       stage: "videoComposition",
-      progress: 95
+      progress: 98
     };
   } catch (error) {
     console.error("Error composing video:", error);
@@ -250,22 +356,44 @@ export const composeVideo = async (processingId: string): Promise<ProcessingResu
   }
 };
 
-// Function to finalize processing and mark as completed
-export const finalizeProcessing = async (processingId: string): Promise<ProcessingResult> => {
+// Function to finalize processing
+export const finalizeProcessing = async (jobId: string): Promise<ProcessingResult> => {
   try {
-    // In a real implementation, you would make an API call to 
-    // finalize the processing and get the final result
+    // Get the job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
+    }
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const result = mockResults[processingId];
-    if (!result) {
-      throw new Error("Processing result not found");
+    // Update job status
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .update({
+        status: 'completed',
+        progress: 100
+      })
+      .eq('id', jobId)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
     }
     
     return {
-      ...result,
+      id: jobId,
+      originalUrl: job.original_image_url,
+      colorizedUrl: job.colorized_image_url,
+      backgroundUrl: job.background_image_url,
+      animatedUrl: job.animated_url,
+      audioUrl: job.audio_url,
+      lipSyncUrl: job.lip_sync_url,
+      finalVideoUrl: job.final_video_url || job.colorized_image_url,
       stage: "completed",
       progress: 100
     };
@@ -276,38 +404,24 @@ export const finalizeProcessing = async (processingId: string): Promise<Processi
   }
 };
 
-// Helper function to generate unique IDs
-const generateId = (): string => {
-  return Math.random().toString(36).substring(2, 15);
-};
-
-// Mock storage for processing results (in a real app, this would be server-side)
-const mockResults: Record<string, ProcessingResult> = {};
-
 // Process the uploaded manga panel (handles the full processing pipeline)
 export const processMangaPanel = async (file: File): Promise<ProcessingResult> => {
   try {
-    // Step 1: Preprocess the image
-    const preprocessResult = await preprocessImage(file);
-    mockResults[preprocessResult.id] = preprocessResult;
+    // Step 1: Upload the file and create a job
+    const uploadResult = await uploadFile(file);
     
-    // Step 2: Colorize the preprocessed image
-    const colorizeResult = await colorizeImage(preprocessResult.id);
-    mockResults[colorizeResult.id] = colorizeResult;
+    // Step 2: Preprocess the image
+    const preprocessResult = await preprocessImage(uploadResult.jobId, uploadResult.url);
     
-    // Step 3: Generate background
+    // Step 3: Colorize the image
+    const colorizeResult = await colorizeImage(uploadResult.jobId, preprocessResult.originalUrl);
+    
+    // Step 4: Generate background (optional in the real flow, added here for demo)
     const backgroundResult = await generateBackground(colorizeResult.id, "anime-style");
-    mockResults[backgroundResult.id] = backgroundResult;
     
-    // Step 4: Animate the image
-    const animateResult = await animateImage(backgroundResult.id, "pan-zoom");
-    mockResults[animateResult.id] = animateResult;
+    // Step 5: Finalize processing for now
+    const finalResult = await finalizeProcessing(backgroundResult.id);
     
-    // Step 5: Finalize processing
-    const finalResult = await finalizeProcessing(animateResult.id);
-    mockResults[finalResult.id] = finalResult;
-    
-    // Return the current processing state
     return finalResult;
   } catch (error) {
     console.error("Error processing manga panel:", error);
@@ -317,10 +431,37 @@ export const processMangaPanel = async (file: File): Promise<ProcessingResult> =
 };
 
 // Get the current processing status
-export const getProcessingStatus = async (processingId: string): Promise<ProcessingResult> => {
-  const result = mockResults[processingId];
-  if (!result) {
-    throw new Error("Processing result not found");
+export const getProcessingStatus = async (jobId: string): Promise<ProcessingResult> => {
+  try {
+    const { data, error } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error('Job not found');
+    }
+    
+    return {
+      id: data.id,
+      originalUrl: data.original_image_url,
+      colorizedUrl: data.colorized_image_url,
+      backgroundUrl: data.background_image_url,
+      animatedUrl: data.animated_url,
+      audioUrl: data.audio_url,
+      lipSyncUrl: data.lip_sync_url,
+      finalVideoUrl: data.final_video_url,
+      stage: data.status as ProcessingStage,
+      progress: data.progress
+    };
+  } catch (error) {
+    console.error("Error getting processing status:", error);
+    toast.error("Failed to get processing status");
+    throw error;
   }
-  return result;
 };

@@ -1,45 +1,68 @@
 
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-// Define the endpoint for uploads (replace with real endpoint when available)
-const UPLOAD_ENDPOINT = "https://api.example.com/upload";
+import { v4 as uuidv4 } from "uuid";
 
 export interface UploadResult {
   id: string;
   url: string;
   filename: string;
+  jobId: string;
 }
 
-// Function to upload a file to the backend
+// Function to upload a file to Supabase storage
 export const uploadFile = async (file: File): Promise<UploadResult> => {
   try {
-    // In a real implementation, this would upload to a server
-    // For now, we'll simulate a successful upload
+    // Generate a unique file path for storage
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${uuidv4()}.${fileExt}`;
     
-    // Create FormData to send the file
-    const formData = new FormData();
-    formData.append('file', file);
+    // Upload to Supabase storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('manga')
+      .upload(filePath, file);
+      
+    if (uploadError) {
+      throw uploadError;
+    }
     
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!uploadData?.path) {
+      throw new Error('Upload failed: No file path returned');
+    }
     
-    // For mock purposes, return a placeholder result
-    // In a real app, you would make an API request here
-    const fileUrl = URL.createObjectURL(file);
+    // Get the public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('manga')
+      .getPublicUrl(uploadData.path);
+      
+    // Create a processing job record in the database
+    const { data: jobData, error: jobError } = await supabase
+      .from('processing_jobs')
+      .insert({
+        original_image_url: publicUrl,
+        status: 'uploaded',
+        progress: 10
+      })
+      .select('id')
+      .single();
+      
+    if (jobError) {
+      throw jobError;
+    }
+    
+    if (!jobData) {
+      throw new Error('Failed to create processing job');
+    }
     
     return {
-      id: generateId(),
-      url: fileUrl,
-      filename: file.name
+      id: uploadData.path,
+      url: publicUrl,
+      filename: file.name,
+      jobId: jobData.id
     };
   } catch (error) {
     console.error("Error uploading file:", error);
     toast.error("Failed to upload file");
     throw error;
   }
-};
-
-// Helper function to generate unique IDs
-const generateId = (): string => {
-  return Math.random().toString(36).substring(2, 15);
 };
