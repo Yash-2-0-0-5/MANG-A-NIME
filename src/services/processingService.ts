@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { uploadFile } from "@/services/uploadService";
@@ -91,7 +90,7 @@ export const preprocessImage = async (jobId: string, imageUrl: string): Promise<
 // Function to colorize the image using our Supabase Edge Function
 export const colorizeImage = async (jobId: string, imageUrl: string): Promise<ProcessingResult> => {
   try {
-    // Call the colorize-image Edge Function
+    // Call the colorize-image Edge Function to start colorization
     const { data, error } = await supabase.functions.invoke("colorize-image", {
       body: { jobId, imageUrl }
     });
@@ -100,20 +99,70 @@ export const colorizeImage = async (jobId: string, imageUrl: string): Promise<Pr
       throw error;
     }
     
-    if (!data || !data.colorizedImageUrl) {
+    if (!data || !data.success) {
       throw new Error('Colorization failed');
     }
     
-    return {
-      id: jobId,
-      originalUrl: imageUrl,
-      colorizedUrl: data.colorizedImageUrl,
-      stage: "colorizing",
-      progress: 50
-    };
+    // If colorization is complete immediately (unlikely), return the result
+    if (data.complete && data.colorizedImageUrl) {
+      return {
+        id: jobId,
+        originalUrl: imageUrl,
+        colorizedUrl: data.colorizedImageUrl,
+        stage: "colorizing",
+        progress: 50
+      };
+    }
+    
+    // Otherwise, start polling for completion
+    const result = await pollColorization(jobId, data.predictionId);
+    return result;
   } catch (error) {
     console.error("Error colorizing image:", error);
     toast.error("Failed to colorize image");
+    throw error;
+  }
+};
+
+// Function to poll for colorization completion
+export const pollColorization = async (jobId: string, predictionId: string): Promise<ProcessingResult> => {
+  try {
+    // Get current job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
+    }
+    
+    // Poll the colorization status
+    const { data, error } = await supabase.functions.invoke("colorize-image", {
+      body: { jobId, predictionId }
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (data.complete && data.colorizedImageUrl) {
+      // Colorization is complete
+      return {
+        id: jobId,
+        originalUrl: job.original_image_url,
+        colorizedUrl: data.colorizedImageUrl,
+        stage: "colorizing",
+        progress: 50
+      };
+    }
+    
+    // Still processing, wait and try again
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    return pollColorization(jobId, predictionId);
+  } catch (error) {
+    console.error("Error polling colorization:", error);
     throw error;
   }
 };
