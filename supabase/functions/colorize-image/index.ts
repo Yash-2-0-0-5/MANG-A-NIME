@@ -22,12 +22,13 @@ const supabaseClient = (req: Request) => {
   );
 };
 
-// Function to colorize an image using Replicate API
+// Function to colorize an image using Replicate API - using anime colorization model
 async function colorizeWithReplicate(imageUrl: string) {
   try {
     console.log("Colorizing image with Replicate:", imageUrl);
 
     // Call Replicate API to colorize the image
+    // Using the PaintsChainer colorization model
     const response = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
@@ -35,9 +36,11 @@ async function colorizeWithReplicate(imageUrl: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        version: "fcad2219fcf39182b3e94dc170e139eb423a0f3548b53dc485320c75943e4291",
+        // Using "anime-style colorful" (PaintsChainer) model
+        version: "8307f891cd7dd8d7832f7bb9d21b5b1df1c8a9ed93fb11af4e3b9fa523874733",
         input: {
-          image: imageUrl
+          image: imageUrl,
+          alpha: 0.6  // Balance between original line art and colored version
         }
       })
     });
@@ -49,6 +52,7 @@ async function colorizeWithReplicate(imageUrl: string) {
     }
 
     const prediction = await response.json();
+    console.log("Colorization started, prediction:", prediction);
     
     // Return the prediction ID for status polling
     return prediction.id;
@@ -77,7 +81,7 @@ async function checkPredictionStatus(predictionId: string): Promise<string> {
     console.log("Prediction status:", prediction.status);
 
     if (prediction.status === "succeeded") {
-      // Return the colorized image URL
+      // Return the colorized image URL (output is an array with one image URL)
       return prediction.output;
     } else if (prediction.status === "failed") {
       throw new Error("Colorization failed: " + (prediction.error || "Unknown error"));
