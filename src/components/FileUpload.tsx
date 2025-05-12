@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import ProcessingSteps from "./ProcessingSteps";
 import ColorizedPreview from "./ColorizedPreview";
 import useProcessing from "@/hooks/useProcessing";
+import { toast } from "sonner";
 
 interface FileUploadProps {
   onFileUploaded?: (file: File) => void;
@@ -29,13 +30,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
     handleDownloadVideo
   } = useProcessing();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length) {
-      const selectedFile = acceptedFiles[0];
-      handleFileSelect(selectedFile);
-      
-      if (onFileUploaded) {
-        onFileUploaded(selectedFile);
+      try {
+        const selectedFile = acceptedFiles[0];
+        
+        // Check file size (10MB limit)
+        if (selectedFile.size > 10 * 1024 * 1024) {
+          toast.error("File size exceeds 10MB limit");
+          return;
+        }
+        
+        handleFileSelect(selectedFile);
+        
+        if (onFileUploaded) {
+          onFileUploaded(selectedFile);
+        }
+      } catch (error) {
+        console.error("Error handling file drop:", error);
+        toast.error("Failed to process the dropped file");
       }
     }
   }, [onFileUploaded, handleFileSelect]);
@@ -46,8 +59,18 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
       'image/jpeg': [],
       'image/png': []
     },
-    maxFiles: 1
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024 // 10MB
   });
+
+  const handleProcessClick = async () => {
+    try {
+      await processImage();
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toast.error("Failed to process image. Please try again.");
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -104,7 +127,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
                   Clear
                 </Button>
                 <Button 
-                  onClick={processImage} 
+                  onClick={handleProcessClick} 
                   disabled={processing}
                 >
                   {processing ? (

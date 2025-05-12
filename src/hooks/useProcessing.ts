@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -23,18 +22,30 @@ export default function useProcessing() {
   const [progress, setProgress] = useState(0);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
-    const objectUrl = URL.createObjectURL(selectedFile);
-    setPreview(objectUrl);
+    try {
+      setError(null);
+      setFile(selectedFile);
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setPreview(objectUrl);
+    } catch (err) {
+      console.error("Error selecting file:", err);
+      toast.error("Failed to select file");
+    }
   };
 
   const clearFile = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setFile(null);
     setPreview(null);
     setProcessingResult(null);
     setJobId(null);
+    setError(null);
+    setProgress(0);
   };
 
   const checkProcessingStatus = async () => {
@@ -49,8 +60,11 @@ export default function useProcessing() {
       if (result.progress < 100) {
         setTimeout(checkProcessingStatus, 3000);
       }
-    } catch (error) {
-      console.error("Error checking processing status:", error);
+    } catch (err) {
+      console.error("Error checking processing status:", err);
+      // Don't show error toast here as it might spam the user
+      // Instead, log it and continue trying
+      setTimeout(checkProcessingStatus, 5000);
     }
   };
 
@@ -59,8 +73,10 @@ export default function useProcessing() {
     
     setProcessing(true);
     setProgress(0);
+    setError(null);
     
     try {
+      console.log("Starting image processing");
       // Process the image
       const result = await processMangaPanel(file);
       
@@ -72,9 +88,12 @@ export default function useProcessing() {
       
       // Start polling for status updates
       setTimeout(checkProcessingStatus, 3000);
-    } catch (error) {
-      console.error("Error processing image:", error);
-      toast.error("Failed to process image");
+      return result;
+    } catch (err: any) {
+      console.error("Error processing image:", err);
+      setError(err?.message || "Failed to process image");
+      toast.error(err?.message || "Failed to process image");
+      throw err;
     } finally {
       setProcessing(false);
     }
@@ -177,6 +196,7 @@ export default function useProcessing() {
     processing,
     progress,
     processingResult,
+    error,
     handleFileSelect,
     clearFile,
     processImage,

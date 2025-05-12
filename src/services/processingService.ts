@@ -54,6 +54,8 @@ export type VoiceType =
 // Function to preprocess the image
 export const preprocessImage = async (jobId: string, imageUrl: string): Promise<ProcessingResult> => {
   try {
+    console.log("Preprocessing image for job:", jobId);
+    
     // Update job status
     const { data, error } = await supabase
       .from('processing_jobs')
@@ -66,12 +68,16 @@ export const preprocessImage = async (jobId: string, imageUrl: string): Promise<
       .single();
       
     if (error) {
+      console.error("Error updating job status:", error);
       throw error;
     }
     
     if (!data) {
+      console.error("Job not found:", jobId);
       throw new Error('Job not found');
     }
+    
+    console.log("Preprocessing complete for job:", jobId);
     
     return {
       id: jobId,
@@ -90,18 +96,24 @@ export const preprocessImage = async (jobId: string, imageUrl: string): Promise<
 // Function to colorize the image using our Supabase Edge Function
 export const colorizeImage = async (jobId: string, imageUrl: string): Promise<ProcessingResult> => {
   try {
+    console.log("Colorizing image for job:", jobId);
+    
     // Call the colorize-image Edge Function to start colorization
     const { data, error } = await supabase.functions.invoke("colorize-image", {
       body: { jobId, imageUrl }
     });
     
     if (error) {
+      console.error("Error invoking colorize-image function:", error);
       throw error;
     }
     
     if (!data || !data.success) {
+      console.error("Colorization failed:", data);
       throw new Error('Colorization failed');
     }
+    
+    console.log("Colorization initiated:", data);
     
     // If colorization is complete immediately (unlikely), return the result
     if (data.complete && data.colorizedImageUrl) {
@@ -127,6 +139,8 @@ export const colorizeImage = async (jobId: string, imageUrl: string): Promise<Pr
 // Function to poll for colorization completion
 export const pollColorization = async (jobId: string, predictionId: string): Promise<ProcessingResult> => {
   try {
+    console.log("Polling colorization status for job:", jobId);
+    
     // Get current job info
     const { data: job, error: jobError } = await supabase
       .from('processing_jobs')
@@ -135,6 +149,7 @@ export const pollColorization = async (jobId: string, predictionId: string): Pro
       .single();
       
     if (jobError || !job) {
+      console.error("Error fetching job:", jobError || "Job not found");
       throw jobError || new Error('Job not found');
     }
     
@@ -144,11 +159,16 @@ export const pollColorization = async (jobId: string, predictionId: string): Pro
     });
     
     if (error) {
+      console.error("Error polling colorization:", error);
       throw error;
     }
     
+    console.log("Poll response:", data);
+    
     if (data.complete && data.colorizedImageUrl) {
       // Colorization is complete
+      console.log("Colorization complete:", data.colorizedImageUrl);
+      
       return {
         id: jobId,
         originalUrl: job.original_image_url,
@@ -159,6 +179,7 @@ export const pollColorization = async (jobId: string, predictionId: string): Pro
     }
     
     // Still processing, wait and try again
+    console.log("Colorization in progress, polling again in 5 seconds");
     await new Promise(resolve => setTimeout(resolve, 5000));
     return pollColorization(jobId, predictionId);
   } catch (error) {
@@ -470,14 +491,19 @@ export const finalizeProcessing = async (jobId: string): Promise<ProcessingResul
 // Process the uploaded manga panel (handles the full processing pipeline)
 export const processMangaPanel = async (file: File): Promise<ProcessingResult> => {
   try {
+    console.log("Processing manga panel:", file.name);
+    
     // Step 1: Upload the file and create a job
     const uploadResult = await uploadFile(file);
+    console.log("Upload complete:", uploadResult);
     
     // Step 2: Preprocess the image
     const preprocessResult = await preprocessImage(uploadResult.jobId, uploadResult.url);
+    console.log("Preprocessing complete:", preprocessResult);
     
     // Step 3: Colorize the image
     const colorizeResult = await colorizeImage(uploadResult.jobId, preprocessResult.originalUrl);
+    console.log("Colorization complete:", colorizeResult);
     
     return colorizeResult;
   } catch (error) {
@@ -490,6 +516,8 @@ export const processMangaPanel = async (file: File): Promise<ProcessingResult> =
 // Get the current processing status
 export const getProcessingStatus = async (jobId: string): Promise<ProcessingResult> => {
   try {
+    console.log("Getting processing status for job:", jobId);
+    
     const { data, error } = await supabase
       .from('processing_jobs')
       .select('*')
@@ -497,12 +525,16 @@ export const getProcessingStatus = async (jobId: string): Promise<ProcessingResu
       .single();
       
     if (error) {
+      console.error("Error fetching job status:", error);
       throw error;
     }
     
     if (!data) {
+      console.error("Job not found:", jobId);
       throw new Error('Job not found');
     }
+    
+    console.log("Job status:", data);
     
     return {
       id: data.id,

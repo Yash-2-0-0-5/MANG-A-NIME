@@ -21,11 +21,21 @@ const BackgroundOptions = ({
   onPromptChange
 }: BackgroundOptionsProps) => {
   const [customPrompt, setCustomPrompt] = useState(prompt);
+  const [inputError, setInputError] = useState<string | null>(null);
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCustomPrompt(e.target.value);
+    const newPrompt = e.target.value;
+    
+    // Basic validation
+    if (newPrompt.length > 500) {
+      setInputError("Prompt must be less than 500 characters");
+    } else {
+      setInputError(null);
+    }
+    
+    setCustomPrompt(newPrompt);
     if (onPromptChange) {
-      onPromptChange(e.target.value);
+      onPromptChange(newPrompt);
     }
   };
 
@@ -115,11 +125,15 @@ const BackgroundOptions = ({
           value={customPrompt}
           onChange={handlePromptChange}
           disabled={disabled}
-          className="min-h-20"
+          className={`min-h-20 ${inputError ? 'border-red-500' : ''}`}
         />
-        <p className="text-xs text-muted-foreground mt-2">
-          Providing a specific prompt helps the AI generate more relevant backgrounds
-        </p>
+        {inputError ? (
+          <p className="text-xs text-red-500 mt-1">{inputError}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground mt-2">
+            Providing a specific prompt helps the AI generate more relevant backgrounds
+          </p>
+        )}
       </div>
     </div>
   );
