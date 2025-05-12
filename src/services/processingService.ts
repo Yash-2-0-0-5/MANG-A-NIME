@@ -167,8 +167,8 @@ export const pollColorization = async (jobId: string, predictionId: string): Pro
   }
 };
 
-// Function to generate a background
-export const generateBackground = async (jobId: string, backgroundType: BackgroundType): Promise<ProcessingResult> => {
+// Function to generate a background using our Supabase Edge Function
+export const generateBackground = async (jobId: string, backgroundType: BackgroundType, prompt?: string): Promise<ProcessingResult> => {
   try {
     // Get the job info
     const { data: job, error: jobError } = await supabase
@@ -181,35 +181,99 @@ export const generateBackground = async (jobId: string, backgroundType: Backgrou
       throw jobError || new Error('Job not found');
     }
     
-    // Update job status
-    const { data, error } = await supabase
-      .from('processing_jobs')
-      .update({
-        status: 'background',
-        progress: 60
-      })
-      .eq('id', jobId)
-      .select('*')
-      .single();
-      
+    // Use the colorized image as the input for background generation
+    const sourceImageUrl = job.colorized_image_url || job.original_image_url;
+    
+    if (!sourceImageUrl) {
+      throw new Error('No source image available for background generation');
+    }
+    
+    // Call the generate-background Edge Function
+    const { data, error } = await supabase.functions.invoke("generate-background", {
+      body: { 
+        jobId, 
+        imageUrl: sourceImageUrl, 
+        backgroundType,
+        prompt 
+      }
+    });
+    
     if (error) {
       throw error;
     }
     
-    // In a real implementation, this would call a background generation API
-    // For now, we'll just use the colorized image
-    return {
-      id: jobId,
-      originalUrl: job.original_image_url,
-      colorizedUrl: job.colorized_image_url,
-      backgroundUrl: job.colorized_image_url,
-      backgroundType: backgroundType,
-      stage: "background",
-      progress: 70
-    };
+    if (!data || !data.success) {
+      throw new Error('Background generation failed');
+    }
+    
+    // If background generation is complete immediately (unlikely), return the result
+    if (data.complete && data.backgroundImageUrl) {
+      return {
+        id: jobId,
+        originalUrl: job.original_image_url,
+        colorizedUrl: job.colorized_image_url,
+        backgroundUrl: data.backgroundImageUrl,
+        backgroundType: backgroundType,
+        stage: "background",
+        progress: 70
+      };
+    }
+    
+    // Otherwise, start polling for completion
+    const result = await pollBackgroundGeneration(jobId, data.predictionId, backgroundType);
+    return result;
   } catch (error) {
     console.error("Error generating background:", error);
     toast.error("Failed to generate background");
+    throw error;
+  }
+};
+
+// Function to poll for background generation completion
+export const pollBackgroundGeneration = async (
+  jobId: string, 
+  predictionId: string,
+  backgroundType: BackgroundType
+): Promise<ProcessingResult> => {
+  try {
+    // Get current job info
+    const { data: job, error: jobError } = await supabase
+      .from('processing_jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError || !job) {
+      throw jobError || new Error('Job not found');
+    }
+    
+    // Poll the background generation status
+    const { data, error } = await supabase.functions.invoke("generate-background", {
+      body: { jobId, predictionId }
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (data.complete && data.backgroundImageUrl) {
+      // Background generation is complete
+      return {
+        id: jobId,
+        originalUrl: job.original_image_url,
+        colorizedUrl: job.colorized_image_url,
+        backgroundUrl: data.backgroundImageUrl,
+        backgroundType: backgroundType as string,
+        stage: "background",
+        progress: 70
+      };
+    }
+    
+    // Still processing, wait and try again
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    return pollBackgroundGeneration(jobId, predictionId, backgroundType);
+  } catch (error) {
+    console.error("Error polling background generation:", error);
     throw error;
   }
 };
@@ -415,13 +479,7 @@ export const processMangaPanel = async (file: File): Promise<ProcessingResult> =
     // Step 3: Colorize the image
     const colorizeResult = await colorizeImage(uploadResult.jobId, preprocessResult.originalUrl);
     
-    // Step 4: Generate background (optional in the real flow, added here for demo)
-    const backgroundResult = await generateBackground(colorizeResult.id, "anime-style");
-    
-    // Step 5: Finalize processing for now
-    const finalResult = await finalizeProcessing(backgroundResult.id);
-    
-    return finalResult;
+    return colorizeResult;
   } catch (error) {
     console.error("Error processing manga panel:", error);
     toast.error("Failed to process manga panel");

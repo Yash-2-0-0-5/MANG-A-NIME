@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { ArrowRight, Play, Download, Mic, Film, Video } from "lucide-react";
+import { ArrowRight, Play, Download, Mic, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -18,7 +17,7 @@ import VideoPreview from "./VideoPreview";
 
 interface ColorizedPreviewProps {
   result: ProcessingResult;
-  onGenerateBackground?: (type: BackgroundType) => void;
+  onGenerateBackground?: (type: BackgroundType, prompt?: string) => void;
   onAnimateImage?: (type: AnimationType) => void;
   onGenerateVoiceover?: (type: VoiceType, dialogueText: string) => void;
   onComposeVideo?: () => void;
@@ -40,6 +39,8 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
   const [selectedAnimationType, setSelectedAnimationType] = useState<AnimationType>(
     result.animationType as AnimationType || "pan-zoom"
   );
+  
+  const [backgroundPrompt, setBackgroundPrompt] = useState("");
 
   const isProcessingBackground = result.stage === "background" && !result.backgroundUrl;
   const isProcessingAnimation = result.stage === "animating" && !result.animatedUrl;
@@ -54,7 +55,7 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
 
   const handleBackgroundGeneration = () => {
     if (onGenerateBackground) {
-      onGenerateBackground(selectedBackgroundType);
+      onGenerateBackground(selectedBackgroundType, backgroundPrompt);
     }
   };
 
@@ -222,6 +223,8 @@ const ColorizedPreview: React.FC<ColorizedPreviewProps> = ({
             selectedType={selectedBackgroundType}
             onTypeChange={setSelectedBackgroundType}
             disabled={!canGenerateBackground || isProcessingBackground}
+            prompt={backgroundPrompt}
+            onPromptChange={setBackgroundPrompt}
           />
           
           {canGenerateBackground && (

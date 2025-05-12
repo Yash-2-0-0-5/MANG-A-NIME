@@ -80,16 +80,19 @@ export default function useProcessing() {
     }
   };
 
-  const handleGenerateBackground = async (backgroundType: BackgroundType) => {
+  const handleGenerateBackground = async (backgroundType: BackgroundType, prompt?: string) => {
     if (!processingResult || !jobId) return;
     
     setProcessing(true);
     
     try {
-      const result = await generateBackground(jobId, backgroundType);
+      const result = await generateBackground(jobId, backgroundType, prompt);
       setProcessingResult(result);
       setProgress(result.progress);
-      toast.success("Background generated successfully");
+      toast.success("Background generation started");
+      
+      // Start polling for status updates
+      setTimeout(checkProcessingStatus, 3000);
     } catch (error) {
       console.error("Error generating background:", error);
       toast.error("Failed to generate background");
